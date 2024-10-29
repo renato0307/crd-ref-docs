@@ -47,7 +47,7 @@ func main() {
 
 	cmd.Flags().StringVar(&args.LogLevel, "log-level", "INFO", "Log level")
 	cmd.Flags().StringVar(&args.Config, "config", "config.yaml", "Path to config file")
-	cmd.Flags().StringVar(&args.SourcePath, "source-path", "", "Path to source directory containing CRDs")
+	cmd.Flags().StringArrayVar(&args.SourcePath, "source-path", []string{}, "Path to source directory containing CRDs")
 	cmd.Flags().StringVar(&args.TemplatesDir, "templates-dir", "", "Path to the directory containing template files")
 	cmd.Flags().StringVar(&args.Renderer, "renderer", "asciidoctor", "Renderer to use ('asciidoctor' or 'markdown')")
 	cmd.Flags().StringVar(&args.OutputPath, "output-path", ".", "Path to output the rendered result")
@@ -99,7 +99,6 @@ func doRun(_ *cobra.Command, _ []string) error {
 
 func initLogging(level string) {
 	var logger *zap.Logger
-	var err error
 	errorPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 		return lvl >= zapcore.ErrorLevel
 	})
@@ -136,11 +135,6 @@ func initLogging(level string) {
 		return lvl > zapcore.ErrorLevel
 	})
 	logger = zap.New(core, zap.AddStacktrace(stackTraceEnabler))
-
-	if err != nil {
-		zap.S().Fatalw("Failed to create logger", "error", err)
-	}
-
 	zap.ReplaceGlobals(logger.Named("crd-ref-docs"))
 	zap.RedirectStdLog(logger.Named("stdlog"))
 }

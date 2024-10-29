@@ -72,7 +72,7 @@ type Flags struct {
 	LogLevel     string
 	OutputPath   string
 	Renderer     string
-	SourcePath   string
+	SourcePath   []string
 	TemplatesDir string
 	OutputMode   string
 	MaxDepth     int

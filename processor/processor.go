@@ -62,9 +62,12 @@ func Process(config *config.Config) ([]types.GroupVersionDetails, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// locate the packages annotated with group names
-	if err := p.findAPITypes(config.SourcePath); err != nil {
-		return nil, fmt.Errorf("failed to find API types in directory %s:%w", config.SourcePath, err)
+	for _, sourcePath := range config.SourcePath {
+		if err := p.findAPITypes(sourcePath); err != nil {
+			return nil, fmt.Errorf("failed to find API types in directory %s:%w", config.SourcePath, err)
+		}
 	}
 
 	p.types.InlineTypes(p.propagateReference)
@@ -78,7 +81,7 @@ func Process(config *config.Config) ([]types.GroupVersionDetails, error) {
 			return nil, fmt.Errorf("type not loaded: %s", typeName)
 		}
 
-		for ref, _ := range refs {
+		for ref := range refs {
 			if rd, ok := p.types[ref]; ok {
 				typeDef.References = append(typeDef.References, rd)
 			}
@@ -89,7 +92,7 @@ func Process(config *config.Config) ([]types.GroupVersionDetails, error) {
 	var gvDetails []types.GroupVersionDetails
 	for _, gvi := range p.groupVersions {
 		details := types.GroupVersionDetails{GroupVersion: gvi.GroupVersion, Doc: gvi.doc}
-		for k, _ := range gvi.kinds {
+		for k := range gvi.kinds {
 			details.Kinds = append(details.Kinds, k)
 		}
 
@@ -310,7 +313,7 @@ func (p *processor) processType(pkg *loader.Package, parentType *types.Type, t g
 	switch t := t.(type) {
 	case nil:
 		typeDef.Kind = types.UnknownKind
-		zap.S().Warnw("Failed to determine AST type", "package", pkg.PkgPath, "type", t.String())
+		zap.S().Warnw("Failed to determine AST type", "package", pkg.PkgPath)
 
 	case *gotypes.Named:
 		// Import the type's package if not within current package
